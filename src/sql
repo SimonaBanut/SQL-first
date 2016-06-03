@@ -1,0 +1,90 @@
+
+CREATE TABLE "USER"
+(
+  "Name" character(35),
+  "Parola" character(20),
+  "Varsta" integer,
+  "Oras" character(35),
+  "Blocat" boolean,
+  "ID" bigserial NOT NULL,
+  CONSTRAINT "ID" PRIMARY KEY ("ID")
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "USER"
+  OWNER TO fasttrackit_dev;
+
+insert into "USER" ("Name") values ('daba');
+insert into "USER" ("Name","Parola","Varsta","Oras","Blocat") values ('badaba','dab123',22,'cluj napoca','false');
+insert into "USER" ("Name","Parola","Varsta","Oras","Blocat") values ('elena','ele123',32,'cluj napoca','false');
+insert into "USER" ("Name","Parola","Varsta","Oras","Blocat") values ('pope','aaab123',42,'zalau','false');
+insert into "USER" ("Name","Parola","Varsta","Oras","Blocat") values ('simo','sssb123',27,'brasov','false');
+delete from "USER" where "Name"='daba';
+select * from "USER";
+insert into "USER" ("Name","Parola","Varsta","Oras","Blocat") values ('simba','saab123',37,'sibiu','true');
+insert into "USER" ("Name","Parola","Varsta","Oras","Blocat") values ('basi','saab123',25,'timisoara','true');
+//useri care nu sunt blocati
+select * from "USER" where "Blocat"='false'
+//4. Sa se afiseze userul cu varsta cea mai mica- eroare nu afiseaza campul Name
+select min("Varsta")from "USER" ;
+//5. Sa se afiseze userii cu varsta intre 23 si 33 de ani , ordonati dupa varsta
+select * from "USER" where "Varsta" > 22  and "Varsta" <33 order by "Varsta" ASC
+//6. sa se afizeze media varstei userilor blocati
+select AVG("Varsta") AS Media from "USER" where "Blocat"
+//7.  sa se afiseze userii neblocati din Cluj
+select "Name" from "USER" where "Oras" = 'cluj napoca' and "Blocat"=false
+
+//cream tabela Postari
+CREATE TABLE "Postari"
+(
+  "Mesaj" character(56),
+  "DataP" date,
+  "P_ID" bigserial NOT NULL,
+  CONSTRAINT "P_ID" PRIMARY KEY ("P_ID"),
+  CONSTRAINT "fk_ID" FOREIGN KEY ("P_ID")
+      REFERENCES "USER" ("ID") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "Postari"
+  OWNER TO fasttrackit_dev;
+
+2. Sa se afiseze toate postarile lui simba
+select "Name", "Mesaj" from "USER", "Postari" where "P_ID" = "ID" and "Name"='simba'
+
+8. sa se afiseze postarile userilor neblocati din cluj care au varsta peste 30 de ani
+select "Name", "Mesaj"from "USER", "Postari" where "P_ID" = "ID" and "Oras"='cluj napoca' and "Blocat"=false and "Varsta">29
+
+
+10. sa se afiseze postarile userilor care incep cu numele D si sunt postate intre 1 si 31 martie 2016
+select "Name", "Mesaj"from "USER", "Postari"
+where "P_ID" = "ID" and "Name" like 's%' and ("DataP" BETWEEN '2016-05-02' AND '2016-05-31')
+
+11. sa se afiseze postarile ordonate dupa data postarii descendent, indiferent de user
+select "Mesaj", "DataP" from "Postari" order by "DataP" DESC
+
+12. sa se stearga postarile userilor sub 18 ani care contin  textul ‘politica’
+
+9. sa sa afiseze userul cu cele mai multe postari
+select count("P_ID")from "Postari" inner join "USER" on "P_ID" = "ID" group by "P_ID"
+
+select * from
+(select count(*)as CNT, rank () over (partition by "P_ID" order by count("Mesaj")desc) as rnk from "Postari" group by "P_ID")as t
+where rnk=1;
+
+select * from
+(select max ("P_ID")over (partition by "Mesaj") as max_id from "Postari" ) t
+where "P_ID" = max_id
+
+SELECT "Name"
+FROM "USER"
+  JOIN "Postari"
+    ON "P_ID" = "ID"
+GROUP BY "Name"
+ORDER BY count(*) DESC
+LIMIT 1;
+
+
